@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from 'react'
+import { PageLayout } from '@/components/layout/PageLayout'
 import { DesignToggle } from '@/components/home/design-switcher/DesignToggle'
 import { WidgetPositionToggle } from '@/components/home/design-switcher/WidgetPositionToggle'
 import { ThemeToggle } from '@/components/layout/ThemeToggle'
@@ -29,6 +30,7 @@ export default function HomePage() {
   }
 
   return (
+    <PageLayout>
     <div className="min-h-screen bg-white dark:bg-black transition-colors duration-300">
       {/* Floating Controls */}
       <div className="fixed top-24 right-6 z-50 flex flex-col gap-2">
@@ -83,6 +85,7 @@ export default function HomePage() {
         </motion.div>
       </AnimatePresence>
     </div>
+    </PageLayout>
   )
 }
 

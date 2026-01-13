@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils'
 import { motion } from 'framer-motion'
 import { Music, Instagram, Play } from 'lucide-react'
+import Link from 'next/link'
 
 interface FeaturedArtistsProps {
   layout?: 'grid' | 'masonry' | 'interactive'
@@ -171,19 +172,22 @@ export function FeaturedArtists({ layout = 'grid', variant = 'light' }: Featured
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {artists.slice(0, 6).map((artist, index) => (
-        <motion.div
+        <Link
           key={artist.id}
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: index * 0.1 }}
-          whileHover={{ y: -5 }}
-          className={cn(
-            "rounded-xl overflow-hidden border transition-all cursor-pointer",
-            isDark 
-              ? "bg-gray-900 border-gray-800 hover:border-red-500" 
-              : "bg-white border-gray-200 hover:border-red-300"
-          )}
+          href={`/artists/${artist.stageName.toLowerCase().replace(/\s+/g, '-')}`}
         >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ delay: index * 0.1 }}
+            whileHover={{ y: -5 }}
+            className={cn(
+              "rounded-xl overflow-hidden border transition-all cursor-pointer",
+              isDark 
+                ? "bg-gray-900 border-gray-800 hover:border-red-500" 
+                : "bg-white border-gray-200 hover:border-red-300"
+            )}
+          >
           <div className="p-5">
             <div className="flex items-start justify-between mb-4">
               <div>
@@ -225,6 +229,7 @@ export function FeaturedArtists({ layout = 'grid', variant = 'light' }: Featured
             </div>
           </div>
         </motion.div>
+        </Link>
       ))}
     </div>
   )

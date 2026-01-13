@@ -1,0 +1,446 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  SUPER_ADMIN
+  ADMIN
+  EDITOR
+  ARTIST
+  VIEWER
+}
+
+enum ArtistStatus {
+  ACTIVE
+  ALUMNI
+  FEATURED
+  PENDING
+}
+
+enum PostStatus {
+  DRAFT
+  PUBLISHED
+  SCHEDULED
+  ARCHIVED
+}
+
+enum GalleryItemType {
+  PHOTO
+  VIDEO
+  AUDIO
+}
+
+enum EventType {
+  RECORDING
+  PERFORMANCE
+  INTERVIEW
+  BEHIND_SCENES
+  EVENT
+}
+
+model User {
+  id            String   @id @default(cuid())
+  name          String
+  email         String   @unique
+  password      String
+  role          UserRole @default(VIEWER)
+  avatar        String?
+
+  blogPosts     BlogPost[]
+  comments      Comment[]
+  timeline      TimelineEvent[]
+  artistProfile Artist?
+  activityLogs  ActivityLog[]
+
+  lastLogin     DateTime?
+  isActive      Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([email])
+  @@index([role])
+}
+
+model Artist {
+  id            String   @id @default(cuid())
+  userId        String?  @unique
+  user          User?    @relation(fields: [userId], references: [id])
+
+  name          String
+  stageName     String   @unique
+  slug          String   @unique
+  bio           String   @db.Text
+  profileImage  String
+  coverImage    String
+  location      String?
+  nationality   String?
+  genre         String?
+
+  instagram     String?
+  twitter       String?
+  youtube       String?
+  spotify       String?
+  soundcloud    String?
+  appleMusic    String?
+  website       String?
+
+  spotifyArtistId String?
+  spotifyData   Json?
+  topTracks     Json?
+
+  season        Season?       @relation(fields: [seasonId], references: [id])
+  seasonId      String?
+  status        ArtistStatus  @default(ACTIVE)
+  featured      Boolean       @default(false)
+  order         Int           @default(0)
+
+  theme         String   @default("classic")
+  accentColor   String?  @default("#DC2626")
+
+  viewCount     Int      @default(0)
+  streamCount   BigInt   @default(0)
+
+  galleryItems  GalleryItem[]
+  episodes      EpisodeArtist[]
+  timeline      TimelineEvent[]
+  blogPosts     BlogPost[]
+
+  joinedAt      DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([stageName])
+  @@index([slug])
+  @@index([seasonId])
+  @@index([status])
+  @@index([featured])
+  @@index([order])
+}
+
+model Season {
+  id            String   @id @default(cuid())
+  name          String
+  slug          String   @unique
+  number        Int      @unique
+  description   String?
+  themeColor    String?  @default("#DC2626")
+  featuredImage String?
+
+  startDate     DateTime
+  endDate       DateTime?
+  isActive      Boolean  @default(true)
+
+  artists       Artist[]
+  episodes      Episode[]
+  galleryItems  GalleryItem[]
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([slug])
+  @@index([number])
+  @@index([isActive])
+}
+
+model Episode {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  description   String   @db.Text
+  excerpt       String?
+
+  season        Season   @relation(fields: [seasonId], references: [id])
+  seasonId      String
+  episodeNumber Int
+
+  videoUrl      String
+  thumbnail     String
+  duration      Int?
+  platform      String   @default("youtube")
+
+  artists       EpisodeArtist[]
+  galleryItems  GalleryItem[]
+  relatedBlogPosts BlogPost[] @relation("BlogPostEpisodes")
+
+  airDate       DateTime
+  views         Int      @default(0)
+  isPublished   Boolean  @default(false)
+  isFeatured    Boolean  @default(false)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([seasonId, episodeNumber])
+  @@index([slug])
+  @@index([seasonId])
+  @@index([airDate])
+  @@index([isPublished])
+}
+
+model EpisodeArtist {
+  id        String  @id @default(cuid())
+  episode   Episode @relation(fields: [episodeId], references: [id])
+  episodeId String
+  artist    Artist  @relation(fields: [artistId], references: [id])
+  artistId  String
+  role      String?
+  order     Int     @default(0)
+
+  @@unique([episodeId, artistId])
+}
+
+model BlogPost {
+  id            String   @id @default(cuid())
+  title         String
+  slug          String   @unique
+  content       String   @db.Text
+  excerpt       String
+  featuredImage String
+
+  author        User     @relation(fields: [authorId], references: [id])
+  authorId      String
+
+  categories    Category[]
+  tags          Tag[]
+
+  metaTitle       String?
+  metaDescription String?
+  keywords        String?
+
+  status        PostStatus @default(DRAFT)
+  publishedAt   DateTime?
+
+  views         Int      @default(0)
+  likes         Int      @default(0)
+  shares        Int      @default(0)
+  comments      Comment[]
+
+  relatedArtists  Artist[]
+  relatedEpisodes Episode[] @relation("BlogPostEpisodes")
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([slug])
+  @@index([authorId])
+  @@index([status, publishedAt])
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  description String?
+  color       String?   @default("#DC2626")
+
+  blogPosts   BlogPost[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+}
+
+model Tag {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+
+  blogPosts    BlogPost[]
+  galleryItems GalleryItem[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([slug])
+}
+
+model GalleryItem {
+  id            String   @id @default(cuid())
+  title         String
+  caption       String?
+  description   String?
+
+  imageUrl      String
+  thumbnailUrl  String?
+  type          GalleryItemType @default(PHOTO)
+  size          Int?
+  dimensions    String?
+
+  artist        Artist?  @relation(fields: [artistId], references: [id])
+  artistId      String?
+  season        Season?  @relation(fields: [seasonId], references: [id])
+  seasonId      String?
+  episode       Episode? @relation(fields: [episodeId], references: [id])
+  episodeId     String?
+  comments      Comment[]
+
+  eventType     EventType?
+  tags          Tag[]
+  photographer  String?
+  location      String?
+  date          DateTime?
+
+  isFeatured    Boolean  @default(false)
+  isPublic      Boolean  @default(true)
+
+  viewCount     Int      @default(0)
+  downloadCount Int      @default(0)
+  likeCount     Int      @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([artistId])
+  @@index([seasonId])
+  @@index([episodeId])
+  @@index([isFeatured])
+  @@index([type])
+}
+
+model Comment {
+  id            String   @id @default(cuid())
+  content       String   @db.Text
+  author        User     @relation(fields: [authorId], references: [id])
+  authorId      String
+
+  blogPost      BlogPost?   @relation(fields: [blogPostId], references: [id])
+  blogPostId    String?
+  galleryItem   GalleryItem? @relation(fields: [galleryItemId], references: [id])
+  galleryItemId String?
+
+  parent        Comment?  @relation("CommentReplies", fields: [parentId], references: [id])
+  parentId      String?
+  replies       Comment[] @relation("CommentReplies")
+
+  isApproved    Boolean  @default(false)
+  isSpam        Boolean  @default(false)
+  reportedCount Int      @default(0)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([blogPostId])
+  @@index([galleryItemId])
+  @@index([authorId])
+  @@index([isApproved])
+}
+
+model TimelineEvent {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  date        DateTime
+  type        String
+
+  artist      Artist?  @relation(fields: [artistId], references: [id])
+  artistId    String?
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      String?
+
+  imageUrl    String?
+  videoUrl    String?
+  externalUrl String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([artistId])
+  @@index([date])
+  @@index([type])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+
+  isActive  Boolean  @default(true)
+  confirmed Boolean  @default(false)
+  preferences Json?
+
+  source    String?
+  ipAddress String?
+  userAgent String?
+
+  subscribedAt   DateTime @default(now())
+  confirmedAt    DateTime?
+  unsubscribedAt DateTime?
+
+  @@index([email])
+  @@index([isActive])
+}
+
+model SiteSettings {
+  id                String   @id @default(cuid())
+
+  siteName          String   @default("Afroqueens")
+  siteDescription   String?
+  logo              String?
+  favicon           String?
+
+  contactEmail      String?
+  supportEmail      String?
+  phone             String?
+  address           String?
+
+  instagramUrl      String?
+  twitterUrl        String?
+  youtubeUrl        String?
+  facebookUrl       String?
+  tiktokUrl         String?
+
+  primaryColor      String?  @default("#DC2626")
+  secondaryColor    String?  @default("#000000")
+  accentColor       String?  @default("#FFFFFF")
+
+  metaTitle         String?
+  metaDescription   String?
+  metaKeywords      String?
+  ogImage           String?
+
+  googleAnalyticsId   String?
+  googleTagManagerId  String?
+  mailchimpApiKey     String?
+  mailchimpListId     String?
+  spotifyClientId     String?
+  spotifyClientSecret String? @map("spotify_client_secret")
+  youtubeApiKey       String?
+
+  enableComments        Boolean  @default(true)
+  enableNewsletter      Boolean  @default(true)
+  enableUserRegistration Boolean @default(false)
+
+  updatedAt         DateTime @updatedAt
+
+  @@unique([id])
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+
+  action      String
+  entityType  String
+  entityId    String?
+  description String?
+
+  ipAddress   String?
+  userAgent   String?
+
+  changes     Json?
+
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}
+
+

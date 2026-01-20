@@ -1,11 +1,25 @@
+// {
+//   "buildCommand": "pnpm run build",
+//   "devCommand": "pnpm run dev",
+//   "installCommand": "pnpm install",
+//   "framework": "nextjs",
+//   "regions": ["iad1"],
+//   "env": {
+//     "PRISMA_GENERATE_DATAPROXY": "true"
+//   }
+// }
+
 {
   "buildCommand": "pnpm run build",
   "devCommand": "pnpm run dev",
   "installCommand": "pnpm install",
   "framework": "nextjs",
   "regions": ["iad1"],
-  "env": {
-    "PRISMA_GENERATE_DATAPROXY": "true"
-  }
+  "crons": [
+    {
+      "path": "/api/keep-alive",
+      "schedule": "*/5 * * * *"
+    }
+  ]
 }
 

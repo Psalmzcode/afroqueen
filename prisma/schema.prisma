@@ -13,6 +13,7 @@ enum UserRole {
   EDITOR
   ARTIST
   VIEWER
+  USER
 }
 
 enum ArtistStatus {
@@ -43,24 +44,78 @@ enum EventType {
   EVENT
 }
 
-model User {
-  id            String   @id @default(cuid())
-  name          String
-  email         String   @unique
-  password      String
-  role          UserRole @default(VIEWER)
-  avatar        String?
+// ============= AUTHENTICATION MODELS (NextAuth Required) =============
 
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============= APPLICATION MODELS =============
+
+model User {
+  // Authentication fields
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  image         String?
+  
+  // Role & status
+  role          UserRole  @default(USER) // USER instead of VIEWER
+  isActive      Boolean   @default(true)
+  
+  // Password field (hashed, nullable for OAuth users)
+  password      String?   // Make nullable for OAuth compatibility
+  
+  // Relations from your schema
   blogPosts     BlogPost[]
   comments      Comment[]
   timeline      TimelineEvent[]
   artistProfile Artist?
   activityLogs  ActivityLog[]
-
+  
+  // NextAuth relations
+  accounts      Account[]
+  sessions      Session[]
+  
+  // Timestamps
   lastLogin     DateTime?
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 
   @@index([email])
   @@index([role])

@@ -1,0 +1,17 @@
+src/lib/auth.ts(538,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/lib/auth/index.ts(436,13): error TS2322: Type '(credentials: Partial<Record<"email" | "password", unknown>>) => Promise<{ id: string; email: string; name: string | null; role: UserRole; image: string | null; emailVerified: Date | null; } | null>' is not assignable to type '(credentials: Partial<Record<"email" | "password", unknown>>, request: Request) => Awaitable<User | null>'.
+  Type 'Promise<{ id: string; email: string; name: string | null; role: UserRole; image: string | null; emailVerified: Date | null; } | null>' is not assignable to type 'Awaitable<User | null>'.
+    Type 'Promise<{ id: string; email: string; name: string | null; role: UserRole; image: string | null; emailVerified: Date | null; } | null>' is not assignable to type 'PromiseLike<User | null>'.
+      Types of property 'then' are incompatible.
+        Type '<TResult1 = { id: string; email: string; name: string | null; role: UserRole; image: string | null; emailVerified: Date | null; } | null, TResult2 = never>(onfulfilled?: ((value: { id: string; email: string; name: string | null; role: UserRole; image: string | null; emailVerified: Date | null; } | null) => TResult1 ...' is not assignable to type '<TResult1 = User | null, TResult2 = never>(onfulfilled?: ((value: User | null) => TResult1 | PromiseLike<TResult1>) | null | undefined, onrejected?: ((reason: any) => TResult2 | PromiseLike<...>) | null | undefined) => PromiseLike<...>'.
+          Types of parameters 'onfulfilled' and 'onfulfilled' are incompatible.
+            Types of parameters 'value' and 'value' are incompatible.
+              Type '{ id: string; email: string; name: string | null; role: UserRole; image: string | null; emailVerified: Date | null; } | null' is not assignable to type 'User | null'.
+                Property 'isActive' is missing in type '{ id: string; email: string; name: string | null; role: $Enums.UserRole; image: string | null; emailVerified: Date | null; }' but required in type 'User'.
+src/lib/auth/index.ts(529,9): error TS2322: Type 'string | undefined' is not assignable to type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/lib/auth/index.ts(534,44): error TS2339: Property 'artistProfile' does not exist on type 'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/lib/auth/password.ts(223,9): error TS1355: A 'const' assertions can only be applied to references to enum members, or string, number, boolean, array, or object literals.
+src/lib/middleware.ts(68,7): error TS2451: Cannot redeclare block-scoped variable 'config'.
+src/lib/middleware.ts(308,14): error TS2451: Cannot redeclare block-scoped variable 'config'.

@@ -1,7 +1,8 @@
-"use client"
+
+'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { signIn } from 'next-auth/react'
 import { Music, Lock, Mail, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -17,7 +18,11 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { isDarkMode } = useDesign()
+
+  // Get callback URL from search params
+  const callbackUrl = searchParams.get('callbackUrl') || '/admin/dashboard'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -29,15 +34,28 @@ export default function LoginPage() {
         email,
         password,
         redirect: false,
+        callbackUrl,
       })
 
       if (result?.error) {
-        setError('Invalid email or password')
-      } else {
-        router.push('/admin/dashboard')
+        // Handle specific errors
+        switch (result.error) {
+          case 'CredentialsSignin':
+            setError('Invalid email or password')
+            break
+          case 'SessionRequired':
+            setError('Please sign in to continue')
+            break
+          default:
+            setError('Something went wrong. Please try again.')
+        }
+      } else if (result?.url) {
+        // Success - redirect to callback URL or dashboard
+        router.push(result.url)
       }
     } catch (error) {
-      setError('Something went wrong. Please try again.')
+      console.error('Login error:', error)
+      setError('An unexpected error occurred. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -67,8 +85,8 @@ export default function LoginPage() {
         </div>
 
         <Card className={cn(
-          "border",
-          isDarkMode ? "border-gray-800" : "border-gray-200"
+          "border shadow-lg",
+          isDarkMode ? "border-gray-800 bg-gray-900/50 backdrop-blur-sm" : "border-gray-200"
         )}>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -85,10 +103,10 @@ export default function LoginPage() {
                 <div className={cn(
                   "flex items-center gap-2 p-3 rounded-lg",
                   isDarkMode
-                    ? "bg-red-900/20 text-red-300"
-                    : "bg-red-50 text-red-700"
+                    ? "bg-red-900/20 text-red-300 border border-red-800/50"
+                    : "bg-red-50 text-red-700 border border-red-200"
                 )}>
-                  <AlertCircle className="h-5 w-5" />
+                  <AlertCircle className="h-5 w-5 flex-shrink-0" />
                   <span className="text-sm">{error}</span>
                 </div>
               )}
@@ -107,12 +125,13 @@ export default function LoginPage() {
                     className={cn(
                       "pl-9",
                       isDarkMode
-                        ? "bg-gray-900 border-gray-700 text-white"
+                        ? "bg-gray-800/50 border-gray-700 text-white placeholder-gray-500"
                         : ""
                     )}
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -131,12 +150,13 @@ export default function LoginPage() {
                     className={cn(
                       "pl-9",
                       isDarkMode
-                        ? "bg-gray-900 border-gray-700 text-white"
+                        ? "bg-gray-800/50 border-gray-700 text-white placeholder-gray-500"
                         : ""
                     )}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
+                    disabled={loading}
                   />
                 </div>
               </div>
@@ -144,10 +164,18 @@ export default function LoginPage() {
             <CardFooter className="flex-col space-y-4">
               <Button 
                 type="submit" 
-                className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800"
+                className="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white"
                 disabled={loading}
               >
-                {loading ? 'Signing in...' : 'Sign In'}
+                {loading ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Signing in...
+                  </>
+                ) : 'Sign In'}
               </Button>
               
               <div className="text-center">
@@ -183,4 +211,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

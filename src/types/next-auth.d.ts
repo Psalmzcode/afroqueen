@@ -1,27 +1,68 @@
-import 'next-auth'
-import 'next-auth/jwt'
+// import 'next-auth'
+// import { UserRole } from '@prisma/client'
 
-declare module 'next-auth' {
+// declare module 'next-auth' {
+//   interface Session {
+//     user: {
+//       id: string
+//       email: string
+//       name?: string | null
+//       role: UserRole
+//       image?: string | null
+//       isActive: boolean
+//       artistId?: string
+//       artistStageName?: string
+//       artistSlug?: string
+//     }
+//   }
+  
+//   interface User {
+//     id: string
+//     email: string
+//     name?: string | null
+//     role: UserRole
+//     image?: string | null
+//     artistId?: string
+//   }
+// }
+
+// declare module 'next-auth/jwt' {
+//   interface JWT {
+//     id?: string
+//     role?: UserRole
+//   }
+// }
+
+import { DefaultSession } from "next-auth"
+import { UserRole } from "@prisma/client"
+
+declare module "next-auth" {
   interface Session {
     user: {
       id: string
-      name?: string | null
-      email?: string | null
-      image?: string | null
-      role?: string
-    }
+      role: UserRole
+      isActive: boolean
+      artistId?: string
+      artistStageName?: string
+      artistSlug?: string
+    } & DefaultSession["user"]
   }
 
   interface User {
-    id: string
-    role?: string
+    role: UserRole
+    isActive: boolean
   }
 }
 
-declare module 'next-auth/jwt' {
+declare module "next-auth/jwt" {
   interface JWT {
-    id?: string
-    role?: string
+    id: string
+    role: UserRole
+    isActive: boolean
+    artistProfile?: {
+      id: string
+      stageName: string
+      slug: string
+    }
   }
 }
-

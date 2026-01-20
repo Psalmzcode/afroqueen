@@ -1,0 +1,2 @@
+src/lib/middleware.ts(68,7): error TS2451: Cannot redeclare block-scoped variable 'config'.
+src/lib/middleware.ts(308,14): error TS2451: Cannot redeclare block-scoped variable 'config'.
